@@ -340,6 +340,16 @@ h2 {
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
+.rail {
+  display: none;
+}
+
+.sponsor-kicker {
+  color: var(--faint);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
 .sponsor-title {
   color: var(--text);
   font-size: 16px;
@@ -558,6 +568,39 @@ code {
   .heat-grid .cell {
     width: 22px;
     height: 22px;
+  }
+}
+
+@media (min-width: 1180px) {
+  #app:has(.has-rails) {
+    width: min(1180px, calc(100% - 48px));
+  }
+
+  .has-rails {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 720px) 200px;
+    column-gap: 28px;
+    align-items: start;
+  }
+
+  .has-rails .rail {
+    display: grid;
+    gap: 12px;
+    position: sticky;
+    top: 24px;
+  }
+
+  .sponsor-follow {
+    display: none;
+  }
+
+  .rail .sponsor-card,
+  .rail .sponsor-slot {
+    padding: 14px;
+  }
+
+  .rail .sponsor-title {
+    font-size: 15px;
   }
 }
 

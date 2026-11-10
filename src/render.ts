@@ -1,7 +1,7 @@
 import { buildHeatmap } from "./heatmap";
 import { formatDays, formatLocal, formatMonth, formatRelative, formatUtc, localTimeZone } from "./format";
 import { t, typeLabel } from "./i18n";
-import { renderSponsorSection } from "./sponsors";
+import { renderSponsorRails, renderSponsorSection } from "./sponsors";
 import { compareOldest, computeStats } from "./stats";
 import type { Lang, ResetRecord } from "./types";
 
@@ -16,6 +16,7 @@ export interface AppState {
   records: readonly ResetRecord[];
   now: Date;
   sponsors: readonly unknown[];
+  featuredSponsorIndex: number;
   reaction: ReactionView;
 }
 
@@ -203,7 +204,12 @@ function feedMarkup(records: readonly ResetRecord[], lang: Lang): string {
 function page(state: AppState): string {
   const copy = t(state.lang);
   const pressed = (lang: Lang): string => (state.lang === lang ? "true" : "false");
+  const rails = renderSponsorRails(state.sponsors, state.lang);
+  const hasRails = rails.left !== "" || rails.right !== "";
   return `<a class="skip" href="#latest">${escapeHtml(copy.latestHeading)}</a>
+  <div class="stage${hasRails ? " has-rails" : ""}">
+  <aside class="rail rail-left">${rails.left}</aside>
+  <div class="stage-main">
   <header class="hero" id="top">
     <div class="top">
       <a class="brand" href="#top">${botIcon()}<h1>Grok Resets</h1></a>
@@ -218,7 +224,7 @@ function page(state: AppState): string {
   <main>
     ${latestMarkup(state.records, state.now, state.lang, state.reaction)}
     ${summaryMarkup(state.records, state.now, state.lang)}
-    ${renderSponsorSection(state.sponsors, state.lang)}
+    ${renderSponsorSection(state.sponsors, state.lang, state.featuredSponsorIndex)}
     ${heatmapMarkup(state.records, state.now, state.lang)}
     ${feedMarkup(state.records, state.lang)}
     <section id="data" aria-labelledby="data-heading">
@@ -232,7 +238,10 @@ function page(state: AppState): string {
   </main>
   <footer class="footer">
     <p>${copy.footerBefore}${botLink()}${copy.footerAfter}</p>
-  </footer>`;
+  </footer>
+  </div>
+  <aside class="rail rail-right">${rails.right}</aside>
+  </div>`;
 }
 
 export function renderApp(root: HTMLElement, state: AppState): void {

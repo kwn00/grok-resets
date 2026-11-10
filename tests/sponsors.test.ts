@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { AD_EMAIL, AD_SUBJECT, advertiseMailto, renderSponsorSection } from "../src/sponsors";
+import {
+  AD_EMAIL,
+  AD_SUBJECT,
+  advertiseMailto,
+  renderSponsorRails,
+  renderSponsorSection,
+} from "../src/sponsors";
 
 function hrefs(html: string): string[] {
   return [...html.matchAll(/href="([^"]*)"/g)].map((match) => (match[1] ?? "").replaceAll("&amp;", "&"));
@@ -17,6 +23,7 @@ describe("renderSponsorSection", () => {
     expect(url.pathname).toBe(AD_EMAIL);
     expect(url.searchParams.get("subject")).toBe(AD_SUBJECT);
     expect(url.searchParams.get("body")).toContain("I would like to advertise on Grok Resets.");
+    expect(renderSponsorRails([], "en")).toEqual({ left: "", right: "" });
   });
 
   it("uses Korean copy on the empty card", () => {
@@ -29,26 +36,34 @@ describe("renderSponsorSection", () => {
     expect(url.searchParams.get("body")).toContain("광고를 문의합니다.");
   });
 
-  it("renders a configured sponsor instead of the inquiry card", () => {
-    const html = renderSponsorSection(
-      [
-        {
-          name: "Northwind",
-          url: "https://northwind.example/tools",
-          tagline: "Quiet tools.",
-          tagline_ko: "조용한 도구.",
-        },
-        { name: "Skipped", url: "javascript:alert(1)", tagline: "no" },
-      ],
-      "ko",
-    );
-    expect(html).toContain("Northwind");
-    expect(html).toContain("https://northwind.example/tools");
-    expect(html).toContain("조용한 도구.");
-    expect(html).toContain('target="_blank"');
-    expect(html).not.toContain("여기에 광고하기");
-    expect(html).not.toContain("Skipped");
-    expect(html).not.toContain("javascript:");
+  it("features one sponsor in the column and lists every sponsor in the rails", () => {
+    const rows = [
+      { name: "Northwind", url: "https://northwind.example/tools", tagline: "Quiet tools.", tagline_ko: "조용한 도구." },
+      { name: "Harbor", url: "https://harbor.example", tagline: "A second card." },
+      { name: "Lumen", url: "https://lumen.example", tagline: "A third card." },
+      { name: "Skipped", url: "javascript:alert(1)", tagline: "no" },
+    ];
+    const featured = renderSponsorSection(rows, "ko", 1);
+    expect(featured).toContain("Harbor");
+    expect(featured).not.toContain("Northwind");
+    expect(featured).not.toContain("Lumen");
+    expect(featured).toContain("sponsor-follow");
+    expect(featured).toContain("여기에 광고하기");
+
+    const first = renderSponsorSection(rows, "ko", 0);
+    expect(first).toContain("조용한 도구.");
+    expect(first).toContain("https://northwind.example/tools");
+    expect(first).toContain('target="_blank"');
+    expect(first).not.toContain("Skipped");
+    expect(first).not.toContain("javascript:");
+
+    const rails = renderSponsorRails(rows, "ko");
+    expect(rails.left).toContain("Northwind");
+    expect(rails.left).toContain("Lumen");
+    expect(rails.left).not.toContain("Harbor");
+    expect(rails.right).toContain("Harbor");
+    expect(rails.right).toContain("여기에 광고하기");
+    expect(rails.right).not.toContain("javascript:");
   });
 
   it("escapes sponsor text and falls back to the English tagline", () => {

@@ -90,7 +90,7 @@ The latest card has a thanks button. One browser can thank each reset once (`loc
 
 ## Sponsors
 
-`data/sponsors.json` is a JSON array. An empty array shows one dashed inquiry card. That card opens a mail draft to `kwaneung.kim@outlook.com`. Add an object to replace the inquiry card with a sponsor card:
+`data/sponsors.json` is a JSON array. An empty array shows one dashed inquiry card in the column. That card opens a mail draft to `kwaneung.kim@outlook.com`. Add an object and the column shows one of those sponsors, chosen at random on each visit. On screens at least 1180px wide, every sponsor is also listed in the left and right rails, with the inquiry card at the bottom of the right rail. Narrower screens keep the chosen sponsor and place the inquiry card directly under it.
 
 ```json
 [

@@ -10,6 +10,7 @@ import {
   serializeThankedIds,
 } from "./reactions";
 import { renderApp, type ReactionView } from "./render";
+import { normalizeSponsors } from "./sponsors";
 import { compareOldest } from "./stats";
 import type { Lang } from "./types";
 
@@ -24,6 +25,10 @@ const root: HTMLElement = rootNode;
 
 const records = normalizeResets(source);
 const sponsorRows: readonly unknown[] = sponsors;
+const featuredSponsorIndex = (() => {
+  const count = normalizeSponsors(sponsorRows, "en").length;
+  return count === 0 ? 0 : Math.floor(Math.random() * count);
+})();
 let lang = initialLang();
 let reactionEpoch = 0;
 let reaction: ReactionView = {
@@ -70,7 +75,14 @@ function thanked(id: string | null): boolean {
 }
 
 function draw(focus?: Lang | "react"): void {
-  renderApp(root, { lang, records, now: new Date(), sponsors: sponsorRows, reaction });
+  renderApp(root, {
+    lang,
+    records,
+    now: new Date(),
+    sponsors: sponsorRows,
+    featuredSponsorIndex,
+    reaction,
+  });
   if (focus === "react") {
     const button = root.querySelector("[data-react]");
     if (button instanceof HTMLButtonElement) button.focus();
