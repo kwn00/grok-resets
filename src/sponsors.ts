@@ -57,14 +57,14 @@ export function normalizeSponsors(input: readonly unknown[], lang: Lang): Sponso
 
 function inquiryCard(lang: Lang): string {
   const copy = t(lang);
-  return `<a class="sponsor-slot" href="${escapeHtml(advertiseMailto(lang))}">
+  return `<a class="panel sponsor-slot" href="${escapeHtml(advertiseMailto(lang))}">
     <span class="sponsor-title">${escapeHtml(copy.advertiseTitle)}</span>
     <span class="sponsor-copy">${escapeHtml(copy.advertiseBody)}</span>
   </a>`;
 }
 
 function sponsorCard(sponsor: Sponsor, newTab: string): string {
-  return `<a class="sponsor-card" href="${escapeHtml(sponsor.url)}" target="_blank" rel="noopener noreferrer">
+  return `<a class="panel sponsor-card" href="${escapeHtml(sponsor.url)}" target="_blank" rel="noopener noreferrer">
     <span class="sponsor-title">${escapeHtml(sponsor.name)}</span>
     <span class="sponsor-copy">${escapeHtml(sponsor.tagline)}</span>
     <span class="sr-only"> (${escapeHtml(newTab)})</span>

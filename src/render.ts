@@ -133,7 +133,7 @@ function latestMarkup(records: readonly ResetRecord[], now: Date, lang: Lang, re
   if (!latest) {
     return `<section id="latest" aria-labelledby="latest-heading">
       <h2 id="latest-heading">${escapeHtml(copy.latestHeading)}</h2>
-      <article class="latest"><p class="empty">${escapeHtml(copy.empty)}</p></article>
+      <article class="panel latest"><p class="empty">${escapeHtml(copy.empty)}</p></article>
     </section>`;
   }
 
@@ -141,9 +141,11 @@ function latestMarkup(records: readonly ResetRecord[], now: Date, lang: Lang, re
   const zone = localTimeZone();
   return `<section id="latest" aria-labelledby="latest-heading">
     <h2 id="latest-heading">${escapeHtml(copy.latestHeading)}</h2>
-    <article class="latest">
-      <p class="badge">${escapeHtml(typeLabel(latest.type, lang))}</p>
-      <p class="relative" data-live="relative">${escapeHtml(formatRelative(when, now, lang))}</p>
+    <article class="panel latest">
+      <div class="latest-head">
+        <p class="relative" data-live="relative">${escapeHtml(formatRelative(when, now, lang))}</p>
+        <p class="kicker">${escapeHtml(typeLabel(latest.type, lang))}</p>
+      </div>
       <dl class="times">
         <div class="time-row">
           <dt>${escapeHtml(copy.utcLabel)}</dt>
@@ -169,10 +171,10 @@ function summaryMarkup(records: readonly ResetRecord[], now: Date, lang: Lang): 
   return `<section id="summary" aria-labelledby="summary-heading">
     <h2 id="summary-heading">${escapeHtml(copy.summaryHeading)}</h2>
     <dl class="stats">
-      <div class="stat"><dt>${escapeHtml(copy.totalLabel)}</dt><dd>${stats.total}</dd></div>
-      <div class="stat"><dt>${escapeHtml(copy.averageLabel)}</dt><dd>${escapeHtml(formatDays(stats.averageIntervalDays, lang))}</dd></div>
-      <div class="stat"><dt>${escapeHtml(copy.sinceLabel)}</dt><dd data-live="since">${escapeHtml(formatDays(stats.daysSinceLastReset, lang))}</dd></div>
-      <div class="stat"><dt>${escapeHtml(copy.longestLabel)}</dt><dd>${escapeHtml(formatDays(stats.longestWaitDays, lang))}</dd></div>
+      <div class="panel stat"><dt>${escapeHtml(copy.totalLabel)}</dt><dd>${stats.total}</dd></div>
+      <div class="panel stat"><dt>${escapeHtml(copy.averageLabel)}</dt><dd>${escapeHtml(formatDays(stats.averageIntervalDays, lang))}</dd></div>
+      <div class="panel stat"><dt>${escapeHtml(copy.sinceLabel)}</dt><dd data-live="since">${escapeHtml(formatDays(stats.daysSinceLastReset, lang))}</dd></div>
+      <div class="panel stat"><dt>${escapeHtml(copy.longestLabel)}</dt><dd>${escapeHtml(formatDays(stats.longestWaitDays, lang))}</dd></div>
     </dl>
     ${hint}
   </section>`;
@@ -211,13 +213,12 @@ function page(state: AppState): string {
   return `<a class="skip" href="#latest">${escapeHtml(copy.latestHeading)}</a>
   <header class="hero" id="top">
     <div class="top">
-      <a class="brand" href="#top" aria-label="Grok Resets">${botIcon()}</a>
+      <a class="brand" href="#top">${botIcon()}<h1>Grok Resets</h1></a>
       <div class="langs" role="group" aria-label="${escapeHtml(copy.langGroup)}">
         <button type="button" data-lang="en" aria-pressed="${pressed("en")}">EN</button>
         <button type="button" data-lang="ko" aria-pressed="${pressed("ko")}">KO</button>
       </div>
     </div>
-    <h1>Grok Resets</h1>
     <p class="subtitle">${escapeHtml(copy.subtitle)}</p>
     <p class="lede">${copy.ledeBefore}${botLink()}${copy.ledeAfter}</p>
   </header>
@@ -231,8 +232,8 @@ function page(state: AppState): string {
       <h2 id="data-heading">${escapeHtml(copy.apiHeading)}</h2>
       <p class="note">${escapeHtml(copy.apiNote)}</p>
       <ul class="api-list">
-        <li><a href="/api/v1/resets.json">${escapeHtml(copy.apiResets)}</a><code>/api/v1/resets.json</code></li>
-        <li><a href="/api/v1/status.json">${escapeHtml(copy.apiStatus)}</a><code>/api/v1/status.json</code></li>
+        <li class="panel"><a href="/api/v1/resets.json">${escapeHtml(copy.apiResets)}</a><code>/api/v1/resets.json</code></li>
+        <li class="panel"><a href="/api/v1/status.json">${escapeHtml(copy.apiStatus)}</a><code>/api/v1/status.json</code></li>
       </ul>
     </section>
   </main>
