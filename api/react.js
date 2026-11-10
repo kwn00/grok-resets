@@ -277,8 +277,7 @@ async function handler(req, res) {
     send(res, result.status, result.body, result.allow);
   } catch (error) {
     console.error(error);
-    const detail = error instanceof Error ? error.message : "unknown";
-    send(res, 503, { available: false, count: null, detail: detail.slice(0, 400) });
+    send(res, 503, { available: false, count: null });
   }
 }
 export {
