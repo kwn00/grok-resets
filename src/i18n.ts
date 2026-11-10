@@ -18,6 +18,12 @@ export interface Copy {
   sinceLabel: string;
   longestLabel: string;
   intervalHint: string;
+  sponsorHeading: string;
+  advertiseTitle: string;
+  advertiseBody: string;
+  advertiseMailBody: string;
+  thanksLabel: string;
+  thanksUnavailable: string;
   heatHeading: string;
   heatNote: string;
   heatLess: string;
@@ -54,6 +60,12 @@ const copy: Record<Lang, Copy> = {
     sinceLabel: "Days since last reset",
     longestLabel: "Longest wait",
     intervalHint: "Average interval and the longest wait appear after a second announcement.",
+    sponsorHeading: "Sponsor",
+    advertiseTitle: "Advertise here",
+    advertiseBody: "Reach developers who use Grok Bot, Grok Build, and Cursor.",
+    advertiseMailBody: "Hello,\n\nI would like to advertise on Grok Resets.\n\nSite:\nName:\n",
+    thanksLabel: "Thanks @bot",
+    thanksUnavailable: "Count unavailable",
     heatHeading: "26-week record",
     heatNote:
       "Each square is one UTC day, with the newest week on the right. Brighter squares are days with a reset announcement.",
@@ -73,7 +85,7 @@ const copy: Record<Lang, Copy> = {
     announcementsHeading: "Announcements",
     announcementsNote: "Newest first. The quoted text is the original post.",
     apiHeading: "Machine-readable",
-    apiNote: "These JSON files are written when the site is built. Nothing serves them live.",
+    apiNote: "These JSON files are written when the site is built. The thanks count is the only live number.",
     apiResets: "Reset list",
     apiStatus: "Status summary",
     footerBefore:
@@ -98,6 +110,12 @@ const copy: Record<Lang, Copy> = {
     sinceLabel: "마지막 초기화 후",
     longestLabel: "최장 공백",
     intervalHint: "평균 간격과 최장 공백은 공지가 두 건 이상일 때 계산됩니다.",
+    sponsorHeading: "스폰서",
+    advertiseTitle: "여기에 광고하기",
+    advertiseBody: "Grok Bot, Grok Build, Cursor를 쓰는 개발자에게 닿습니다.",
+    advertiseMailBody: "안녕하세요.\n\nGrok Resets에 광고를 문의합니다.\n\n사이트:\n이름:\n",
+    thanksLabel: "고마워요",
+    thanksUnavailable: "횟수를 표시할 수 없습니다",
     heatHeading: "26주 기록",
     heatNote:
       "한 칸은 UTC 기준 하루이고, 오른쪽 끝이 최근 주입니다. 밝은 칸은 그날 초기화 공지가 있었음을 뜻합니다.",
@@ -116,7 +134,7 @@ const copy: Record<Lang, Copy> = {
     announcementsHeading: "공지",
     announcementsNote: "최신순입니다. 인용문은 게시 원문입니다.",
     apiHeading: "기계가 읽는 데이터",
-    apiNote: "이 JSON 파일은 사이트를 빌드할 때 만들어집니다. 실시간으로 응답하는 서버는 없습니다.",
+    apiNote: "이 JSON 파일은 사이트를 빌드할 때 만들어집니다. 실시간으로 바뀌는 값은 고마움 횟수뿐입니다.",
     apiResets: "초기화 목록",
     apiStatus: "상태 요약",
     footerBefore:

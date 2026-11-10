@@ -78,9 +78,41 @@ Import the repository and use:
 | Build command | `npm run build` |
 | Output directory | `dist` |
 | Node.js | 22.x or newer |
-| Environment variables | none |
+| Environment variables | Upstash Redis, below. The site still builds without them. |
 
-`vercel.json` already sets the framework, build command, and output directory. No server, no database.
+`vercel.json` sets the framework, build command, and output directory. The page and `/api/v1/*.json` are static files in `dist`. `/api/react` is a serverless function in the repo's `api/` folder, so it does not replace those JSON files.
+
+## Thanks count
+
+The latest card has a thanks button. One browser can thank each reset once (`localStorage`). The shared count lives in Upstash Redis. If the database is not connected, or the request fails, the button stays on the page and the count shows `—`.
+
+Create the store in the Vercel project that deploys this repo:
+
+1. Open the project in the Vercel dashboard.
+2. Go to **Storage**, or **Integrations** / **Marketplace**, and add **Upstash Redis** (the Vercel KV / Marketplace Redis integration).
+3. Create a database and connect it to this project. Connecting writes one of these pairs into the project environment:
+   - `KV_REST_API_URL` and `KV_REST_API_TOKEN`
+   - `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`
+4. Redeploy the current production deployment so the function can read the variables. A new push to `main` does the same thing.
+
+The function checks the KV pair first, then the Upstash pair. No other environment variables are required.
+
+## Sponsors
+
+`data/sponsors.json` is a JSON array. An empty array shows one dashed inquiry card. That card opens a mail draft to `kwaneung.kim@outlook.com`. Add an object to replace the inquiry card with a sponsor card:
+
+```json
+[
+  {
+    "name": "Example",
+    "url": "https://example.com",
+    "tagline": "Tools for long sessions.",
+    "tagline_ko": "긴 작업에 쓰는 도구."
+  }
+]
+```
+
+`tagline_ko` is optional. Without it, the Korean page uses `tagline`. Rows with a missing name, a missing tagline, or a non-http URL are skipped. Push the file to `main` to publish the card.
 
 ## Disclaimer
 

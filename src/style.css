@@ -6,6 +6,7 @@
   --text: #f4f4f4;
   --muted: #b0b0b0;
   --faint: #8d8d8d;
+  --accent: #d5deee;
   --heat-0: #1c1c1c;
   --heat-1: #3a3a3a;
   --heat-2: #6e6e6e;
@@ -230,6 +231,109 @@ h2 {
   font-size: 15px;
 }
 
+.latest-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+}
+
+.react {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 6px 12px 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.react-icon {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+.react-label,
+.react-count {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.react-count {
+  font-variant-numeric: tabular-nums;
+}
+
+.react[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--accent);
+  cursor: default;
+}
+
+.react.is-burst .react-icon {
+  animation: react-spark 320ms ease;
+}
+
+@keyframes react-spark {
+  0% {
+    transform: scale(0.86);
+  }
+  45% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.sponsor-list {
+  display: grid;
+  gap: 10px;
+}
+
+.sponsor-slot,
+.sponsor-card {
+  display: grid;
+  gap: 6px;
+  padding: 18px;
+  border-radius: 16px;
+  text-decoration: none;
+}
+
+.sponsor-slot {
+  border: 1px dashed rgba(255, 255, 255, 0.32);
+  color: var(--muted);
+}
+
+.sponsor-slot:hover {
+  border-color: rgba(255, 255, 255, 0.55);
+  color: var(--text);
+}
+
+.sponsor-card {
+  background: var(--raised);
+  color: var(--text);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.sponsor-title {
+  color: var(--text);
+  font-size: 16px;
+}
+
+.sponsor-copy {
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.sponsor-card .sponsor-copy {
+  color: var(--muted);
+}
+
 .stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -451,5 +555,11 @@ code {
 
   .time-row dd {
     text-align: left;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .react.is-burst .react-icon {
+    animation: none;
   }
 }

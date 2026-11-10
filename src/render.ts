@@ -1,13 +1,22 @@
 import { buildHeatmap } from "./heatmap";
 import { formatDays, formatLocal, formatMonth, formatRelative, formatUtc, localTimeZone } from "./format";
 import { t, typeLabel } from "./i18n";
+import { renderSponsorSection } from "./sponsors";
 import { compareOldest, computeStats } from "./stats";
 import type { Lang, ResetRecord } from "./types";
+
+export interface ReactionView {
+  count: number | null;
+  reacted: boolean;
+  burst: boolean;
+}
 
 export interface AppState {
   lang: Lang;
   records: readonly ResetRecord[];
   now: Date;
+  sponsors: readonly unknown[];
+  reaction: ReactionView;
 }
 
 const BOT_URL = "https://x.com/bot";
@@ -39,6 +48,30 @@ function botLink(): string {
 
 function announcementLink(url: string, label: string, newTab: string): string {
   return `<a class="text-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)} <span aria-hidden="true">↗</span><span class="sr-only"> (${escapeHtml(newTab)})</span></a>`;
+}
+
+function sparkIcon(): string {
+  return `<svg class="react-icon" viewBox="0 0 16 16" aria-hidden="true">
+    <path d="M9.1 1.4 4 8.1h3.2l-.8 6.5 5.6-7.2H8.7L9.1 1.4Z" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"/>
+  </svg>`;
+}
+
+function reactionCount(count: number | null, lang: Lang): string {
+  if (count === null) return "—";
+  return new Intl.NumberFormat(lang === "ko" ? "ko-KR" : "en").format(count);
+}
+
+function reactionButton(id: string, lang: Lang, reaction: ReactionView): string {
+  const copy = t(lang);
+  const countText = reactionCount(reaction.count, lang);
+  const aria =
+    reaction.count === null ? `${copy.thanksLabel}. ${copy.thanksUnavailable}` : `${copy.thanksLabel}. ${countText}`;
+  const burst = reaction.burst ? " is-burst" : "";
+  return `<button type="button" class="react${burst}" data-react="${escapeHtml(id)}" aria-pressed="${reaction.reacted ? "true" : "false"}" aria-label="${escapeHtml(aria)}">
+    ${sparkIcon()}
+    <span class="react-label">${escapeHtml(copy.thanksLabel)}</span>
+    <span class="react-count">${escapeHtml(countText)}</span>
+  </button>`;
 }
 
 function heatmapMarkup(records: readonly ResetRecord[], now: Date, lang: Lang): string {
@@ -94,7 +127,7 @@ function heatmapMarkup(records: readonly ResetRecord[], now: Date, lang: Lang): 
   </section>`;
 }
 
-function latestMarkup(records: readonly ResetRecord[], now: Date, lang: Lang): string {
+function latestMarkup(records: readonly ResetRecord[], now: Date, lang: Lang, reaction: ReactionView): string {
   const copy = t(lang);
   const latest = records.slice().sort(compareOldest).at(-1);
   if (!latest) {
@@ -121,7 +154,10 @@ function latestMarkup(records: readonly ResetRecord[], now: Date, lang: Lang): s
           <dd>${escapeHtml(formatLocal(when, zone))}</dd>
         </div>
       </dl>
-      ${announcementLink(latest.url, copy.viewAnnouncement, copy.newTab)}
+      <div class="latest-actions">
+        ${announcementLink(latest.url, copy.viewAnnouncement, copy.newTab)}
+        ${reactionButton(latest.id, lang, reaction)}
+      </div>
     </article>
   </section>`;
 }
@@ -186,8 +222,9 @@ function page(state: AppState): string {
     <p class="lede">${copy.ledeBefore}${botLink()}${copy.ledeAfter}</p>
   </header>
   <main>
-    ${latestMarkup(state.records, state.now, state.lang)}
+    ${latestMarkup(state.records, state.now, state.lang, state.reaction)}
     ${summaryMarkup(state.records, state.now, state.lang)}
+    ${renderSponsorSection(state.sponsors, state.lang)}
     ${heatmapMarkup(state.records, state.now, state.lang)}
     ${feedMarkup(state.records, state.lang)}
     <section id="data" aria-labelledby="data-heading">
