@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  BLOB_CACHE_CONTROL_MAX_AGE,
+  COUNTS_PATH,
+  createBlobCountStore,
+  type BlobSdk,
+} from "../src/blob-store";
+import {
   REACTION_ROUTE,
   STATIC_DATA_PREFIX,
   THANKS_KEY,
@@ -8,7 +14,9 @@ import {
   parseHashCounts,
   parseReactionPayload,
   parseThankedIds,
+  reactionHeaders,
   readReactionId,
+  resolveCountStore,
   resolveRedisConfig,
   serializeThankedIds,
   type RedisClient,
@@ -71,12 +79,12 @@ describe("resolveRedisConfig", () => {
 describe("handleReaction", () => {
   it("rejects unsupported methods and unknown reset ids", async () => {
     const redis = memoryRedis();
-    expect((await handleReaction({ method: "PUT", id: null, knownIds: KNOWN, redis })).status).toBe(405);
+    expect((await handleReaction({ method: "PUT", id: null, knownIds: KNOWN, store: redis })).status).toBe(405);
     const unknown = await handleReaction({
       method: "POST",
       id: "not-a-reset",
       knownIds: KNOWN,
-      redis,
+      store: redis,
     });
     expect(unknown).toMatchObject({ status: 400, body: { error: "unknown_reset" } });
     expect(redis.counts).toEqual({});
@@ -87,7 +95,7 @@ describe("handleReaction", () => {
       method: "GET",
       id: "2119871982946971659",
       knownIds: KNOWN,
-      redis: null,
+      store: null,
     });
     expect(result).toEqual({ status: 200, body: { available: false, count: null } });
   });
@@ -98,7 +106,7 @@ describe("handleReaction", () => {
       method: "GET",
       id: "2119871982946971659",
       knownIds: KNOWN,
-      redis,
+      store: redis,
     });
     expect(before.body).toEqual({ available: true, count: 0 });
 
@@ -106,7 +114,7 @@ describe("handleReaction", () => {
       method: "POST",
       id: "2119871982946971659",
       knownIds: KNOWN,
-      redis,
+      store: redis,
     });
     expect(after.body).toEqual({ available: true, count: 1 });
     expect(redis.counts["2119871982946971659"]).toBe(1);
@@ -114,7 +122,7 @@ describe("handleReaction", () => {
 
   it("returns every count when a GET has no id", async () => {
     const redis = memoryRedis({ "2119871982946971659": 4 });
-    const result = await handleReaction({ method: "GET", id: null, knownIds: KNOWN, redis });
+    const result = await handleReaction({ method: "GET", id: null, knownIds: KNOWN, store: redis });
     expect(result.body).toEqual({ available: true, counts: { "2119871982946971659": 4 } });
   });
 
@@ -131,7 +139,7 @@ describe("handleReaction", () => {
       method: "POST",
       id: "2119871982946971659",
       knownIds: KNOWN,
-      redis,
+      store: redis,
     });
     expect(result).toEqual({ status: 503, body: { available: false, count: null } });
   });
@@ -165,6 +173,128 @@ describe("Upstash responses", () => {
       "2119871982946971659",
       "1",
     ]);
+  });
+});
+
+const RESET_ID = "2119871982946971659";
+
+function missingBlob(): Error {
+  return Object.assign(new Error("Blob not found"), { name: "BlobNotFoundError" });
+}
+
+describe("Vercel Blob counts", () => {
+  it("prefers Blob over Redis when BLOB_READ_WRITE_TOKEN is set", async () => {
+    const seen: string[] = [];
+    const fetchImpl: typeof fetch = async (url) => {
+      seen.push(String(url));
+      return new Response("{}", { status: 200 });
+    };
+    const blob: BlobSdk = {
+      async head() {
+        seen.push("head");
+        throw missingBlob();
+      },
+      async put(pathname) {
+        seen.push(`put:${pathname}`);
+      },
+    };
+    const store = resolveCountStore(
+      {
+        BLOB_READ_WRITE_TOKEN: " blob-token ",
+        KV_REST_API_URL: "https://kv.example",
+        KV_REST_API_TOKEN: "kv-token",
+      },
+      { fetch: fetchImpl, blob },
+    );
+    await expect(store?.increment(RESET_ID)).resolves.toBe(1);
+    expect(seen).toEqual(["head", `put:${COUNTS_PATH}`]);
+    expect(resolveCountStore({ BLOB_READ_WRITE_TOKEN: "  " }, { fetch: fetchImpl, blob })).toBeNull();
+  });
+
+  it("falls back to Redis only when the Blob token is absent", async () => {
+    const fetchImpl: typeof fetch = async () => new Response(JSON.stringify({ result: [] }), { status: 200 });
+    const blob: BlobSdk = {
+      async head() {
+        throw new Error("blob should not be used");
+      },
+      async put() {
+        throw new Error("blob should not be used");
+      },
+    };
+    const store = resolveCountStore(
+      { UPSTASH_REDIS_REST_URL: "https://upstash.example", UPSTASH_REDIS_REST_TOKEN: "up" },
+      { fetch: fetchImpl, blob },
+    );
+    await expect(store?.getAll()).resolves.toEqual({});
+    expect(resolveCountStore({}, { fetch: fetchImpl, blob })).toBeNull();
+  });
+
+  it("reads a private blob with the token and retries one failed write", async () => {
+    const writes: { pathname: string; body: string; options: unknown }[] = [];
+    const reads: { url: string; authorization: string | null; cache: RequestCache | undefined }[] = [];
+    let stored = JSON.stringify({ [RESET_ID]: 2 });
+    const blob: BlobSdk = {
+      async head() {
+        return { url: "https://store.private.blob.vercel-storage.com/reactions/counts.json" };
+      },
+      async put(pathname, body, options) {
+        writes.push({ pathname, body, options });
+        if (writes.length === 1) throw new Error("conflict");
+        stored = body;
+      },
+    };
+    const fetchImpl: typeof fetch = async (url, init) => {
+      const headers = new Headers(init?.headers);
+      reads.push({
+        url: String(url),
+        authorization: headers.get("authorization"),
+        cache: init?.cache,
+      });
+      return new Response(stored, { status: 200 });
+    };
+    const store = createBlobCountStore("blob-token", blob, fetchImpl);
+    await expect(store.increment(RESET_ID)).resolves.toBe(3);
+    expect(writes).toHaveLength(2);
+    expect(writes[1]).toMatchObject({
+      pathname: COUNTS_PATH,
+      body: JSON.stringify({ [RESET_ID]: 3 }),
+      options: {
+        access: "private",
+        token: "blob-token",
+        allowOverwrite: true,
+        addRandomSuffix: false,
+        contentType: "application/json",
+        cacheControlMaxAge: BLOB_CACHE_CONTROL_MAX_AGE,
+      },
+    });
+    expect(reads).toHaveLength(2);
+    expect(reads.every((read) => read.url.includes("cache=0"))).toBe(true);
+    expect(reads.every((read) => read.authorization === "Bearer blob-token")).toBe(true);
+    expect(reads.every((read) => read.cache === "no-store")).toBe(true);
+    await expect(store.getAll()).resolves.toEqual({ [RESET_ID]: 3 });
+  });
+
+  it("starts at one when the counts blob does not exist yet", async () => {
+    const fetched: string[] = [];
+    const blob: BlobSdk = {
+      async head() {
+        throw missingBlob();
+      },
+      async put(_pathname, body) {
+        expect(JSON.parse(body)).toEqual({ [RESET_ID]: 1 });
+      },
+    };
+    const store = createBlobCountStore("blob-token", blob, async (url) => {
+      fetched.push(String(url));
+      return new Response("{}", { status: 200 });
+    });
+    await expect(store.increment(RESET_ID)).resolves.toBe(1);
+    expect(fetched).toEqual([]);
+  });
+
+  it("sends no-store on reaction responses", () => {
+    expect(reactionHeaders()["Cache-Control"]).toBe("no-store");
+    expect(reactionHeaders("GET, POST").Allow).toBe("GET, POST");
   });
 });
 

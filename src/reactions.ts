@@ -1,3 +1,5 @@
+import { createBlobCountStore, type BlobSdk } from "./blob-store";
+
 export const REACTION_ROUTE = "/api/react";
 export const STATIC_DATA_PREFIX = "/api/v1/";
 export const THANKS_KEY = "grok-resets-thanks";
@@ -8,10 +10,12 @@ export interface RedisConfig {
   token: string;
 }
 
-export interface RedisClient {
+export interface CountStore {
   getAll(): Promise<Record<string, number>>;
   increment(id: string): Promise<number | null>;
 }
+
+export type RedisClient = CountStore;
 
 export interface ReactionResult {
   status: number;
@@ -87,7 +91,7 @@ async function command(
   return record.result ?? null;
 }
 
-export function createUpstashClient(config: RedisConfig, fetchImpl: typeof fetch): RedisClient {
+export function createUpstashClient(config: RedisConfig, fetchImpl: typeof fetch): CountStore {
   const endpoint = { url: config.url.replace(/\/+$/, ""), token: config.token };
   return {
     async getAll() {
@@ -99,11 +103,31 @@ export function createUpstashClient(config: RedisConfig, fetchImpl: typeof fetch
   };
 }
 
+export function reactionHeaders(allow?: string): Record<string, string> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json; charset=utf-8",
+    "Cache-Control": "no-store",
+  };
+  if (allow) headers.Allow = allow;
+  return headers;
+}
+
+export function resolveCountStore(
+  env: Record<string, string | undefined>,
+  deps: { fetch: typeof fetch; blob: BlobSdk },
+): CountStore | null {
+  const blobToken = env.BLOB_READ_WRITE_TOKEN?.trim();
+  if (blobToken) return createBlobCountStore(blobToken, deps.blob, deps.fetch);
+  const redis = resolveRedisConfig(env);
+  if (!redis) return null;
+  return createUpstashClient(redis, deps.fetch);
+}
+
 export async function handleReaction(input: {
   method: string;
   id: string | null;
   knownIds: ReadonlySet<string>;
-  redis: RedisClient | null;
+  store: CountStore | null;
 }): Promise<ReactionResult> {
   const method = input.method.toUpperCase();
   if (method !== "GET" && method !== "POST") {
@@ -113,18 +137,18 @@ export async function handleReaction(input: {
   if (needsId && (input.id === null || !input.knownIds.has(input.id))) {
     return { status: 400, body: { error: "unknown_reset" } };
   }
-  if (!input.redis) return { status: 200, body: { ...UNAVAILABLE } };
+  if (!input.store) return { status: 200, body: { ...UNAVAILABLE } };
   try {
     if (method === "GET" && input.id === null) {
-      return { status: 200, body: { available: true, counts: await input.redis.getAll() } };
+      return { status: 200, body: { available: true, counts: await input.store.getAll() } };
     }
     const id = input.id;
     if (id === null) return { status: 400, body: { error: "unknown_reset" } };
     if (method === "GET") {
-      const counts = await input.redis.getAll();
+      const counts = await input.store.getAll();
       return { status: 200, body: { available: true, count: counts[id] ?? 0 } };
     }
-    const count = await input.redis.increment(id);
+    const count = await input.store.increment(id);
     if (count === null) return { status: 503, body: { ...UNAVAILABLE } };
     return { status: 200, body: { available: true, count } };
   } catch {

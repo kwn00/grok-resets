@@ -78,24 +78,15 @@ Import the repository and use:
 | Build command | `npm run build` |
 | Output directory | `dist` |
 | Node.js | 22.x or newer |
-| Environment variables | Upstash Redis, below. The site still builds without them. |
+| Environment variables | `BLOB_READ_WRITE_TOKEN` is already set. Redis variables are optional. |
 
 `vercel.json` sets the framework, build command, and output directory. The page and `/api/v1/*.json` are static files in `dist`. `/api/react` is a serverless function in the repo's `api/` folder, so it does not replace those JSON files.
 
 ## Thanks count
 
-The latest card has a thanks button. One browser can thank each reset once (`localStorage`). The shared count lives in Upstash Redis. If the database is not connected, or the request fails, the button stays on the page and the count shows `—`.
+The latest card has a thanks button. One browser can thank each reset once (`localStorage`). The shared count is a private object at `reactions/counts.json` in the Vercel Blob store `grok-resets-reactions` (region `iad1`), which is already connected to this project. The function reads that blob with the store token and writes it back with `allowOverwrite`. `GET /api/react` is sent with `Cache-Control: no-store`.
 
-Create the store in the Vercel project that deploys this repo:
-
-1. Open the project in the Vercel dashboard.
-2. Go to **Storage**, or **Integrations** / **Marketplace**, and add **Upstash Redis** (the Vercel KV / Marketplace Redis integration).
-3. Create a database and connect it to this project. Connecting writes one of these pairs into the project environment:
-   - `KV_REST_API_URL` and `KV_REST_API_TOKEN`
-   - `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`
-4. Redeploy the current production deployment so the function can read the variables. A new push to `main` does the same thing.
-
-The function checks the KV pair first, then the Upstash pair. No other environment variables are required.
+`BLOB_READ_WRITE_TOKEN` is the variable the connection provides. If that token is missing and a Redis REST pair is present (`KV_REST_API_URL` / `KV_REST_API_TOKEN`, or `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`), the count falls back to Redis. If neither store is available, or a request fails, the button stays on the page and the count shows `—`.
 
 ## Sponsors
 
