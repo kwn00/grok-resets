@@ -24,7 +24,9 @@ export interface BlobSdk {
 }
 
 function isMissingBlob(error: unknown): boolean {
-  return error instanceof Error && error.name === "BlobNotFoundError";
+  if (!(error instanceof Error)) return false;
+  if (error.name === "BlobNotFoundError") return true;
+  return /requested blob does not exist/i.test(error.message);
 }
 
 async function readCounts(token: string, blob: BlobSdk, fetchImpl: typeof fetch): Promise<Record<string, number>> {

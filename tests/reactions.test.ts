@@ -274,6 +274,19 @@ describe("Vercel Blob counts", () => {
     await expect(store.getAll()).resolves.toEqual({ [RESET_ID]: 3 });
   });
 
+  it("starts at one when Vercel reports that the counts blob is missing", async () => {
+    const blob: BlobSdk = {
+      async head() {
+        throw new Error("Vercel Blob: The requested blob does not exist");
+      },
+      async put(_pathname, body) {
+        expect(JSON.parse(body)).toEqual({ [RESET_ID]: 1 });
+      },
+    };
+    const store = createBlobCountStore("blob-token", blob, async () => new Response("{}", { status: 200 }));
+    await expect(store.increment(RESET_ID)).resolves.toBe(1);
+  });
+
   it("starts at one when the counts blob does not exist yet", async () => {
     const fetched: string[] = [];
     const blob: BlobSdk = {
