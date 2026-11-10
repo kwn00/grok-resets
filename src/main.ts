@@ -1,4 +1,5 @@
 import { inject } from '@vercel/analytics';
+import { injectSpeedInsights } from '@vercel/speed-insights';
 import source from "../data/resets.json";
 import sponsors from "../data/sponsors.json";
 import "./style.css";
@@ -16,6 +17,7 @@ import { compareOldest } from "./stats";
 import type { Lang } from "./types";
 
 inject();
+injectSpeedInsights();
 
 const LANG_KEY = "grok-resets-lang";
 const BURST_MS = 320;
