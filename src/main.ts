@@ -1,3 +1,4 @@
+import { inject } from '@vercel/analytics';
 import source from "../data/resets.json";
 import sponsors from "../data/sponsors.json";
 import "./style.css";
@@ -13,6 +14,8 @@ import { renderApp, type ReactionView } from "./render";
 import { normalizeSponsors } from "./sponsors";
 import { compareOldest } from "./stats";
 import type { Lang } from "./types";
+
+inject();
 
 const LANG_KEY = "grok-resets-lang";
 const BURST_MS = 320;
