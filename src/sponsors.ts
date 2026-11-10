@@ -79,8 +79,8 @@ export function splitSponsorRails<T>(items: readonly T[]): { left: T[]; right: T
   const left: T[] = [];
   const right: T[] = [];
   items.forEach((item, index) => {
-    if (index % 2 === 0) left.push(item);
-    else right.push(item);
+    if (index % 2 === 0) right.push(item);
+    else left.push(item);
   });
   return { left, right };
 }
@@ -95,8 +95,10 @@ export function renderSponsorSection(input: readonly unknown[], lang: Lang, feat
   const copy = t(lang);
   const sponsors = normalizeSponsors(input, lang);
   const featured = featuredSponsor(sponsors, featuredIndex);
-  const card = featured ? sponsorCard(featured, copy.newTab, copy.sponsorHeading, false) : inquiryCard(lang, false);
-  const follow = featured ? `<div class="sponsor-follow">${inquiryCard(lang, false)}</div>` : "";
+  const card = featured
+    ? sponsorCard(featured, copy.newTab, copy.sponsorHeading, false)
+    : `<div class="panel sponsor-placeholder">${escapeHtml(copy.sponsorPlaceholder)}</div>`;
+  const follow = `<div class="sponsor-follow">${inquiryCard(lang, false)}</div>`;
   return `<section id="sponsor" aria-labelledby="sponsor-heading">
     <h2 id="sponsor-heading">${escapeHtml(copy.sponsorHeading)}</h2>
     <div class="sponsor-list">${card}${follow}</div>
@@ -106,9 +108,13 @@ export function renderSponsorSection(input: readonly unknown[], lang: Lang, feat
 export function renderSponsorRails(input: readonly unknown[], lang: Lang): { left: string; right: string } {
   const copy = t(lang);
   const sponsors = normalizeSponsors(input, lang);
-  if (sponsors.length === 0) return { left: "", right: "" };
   const { left, right } = splitSponsorRails(sponsors);
+  const inquiry = inquiryCard(lang, true);
+  const nextSlotOnRight = sponsors.length % 2 === 0;
   const leftHtml = left.map((sponsor) => sponsorCard(sponsor, copy.newTab, copy.sponsorHeading, true)).join("");
-  const rightHtml = `${right.map((sponsor) => sponsorCard(sponsor, copy.newTab, copy.sponsorHeading, true)).join("")}${inquiryCard(lang, true)}`;
-  return { left: leftHtml, right: rightHtml };
+  const rightHtml = right.map((sponsor) => sponsorCard(sponsor, copy.newTab, copy.sponsorHeading, true)).join("");
+  return {
+    left: nextSlotOnRight ? leftHtml : `${leftHtml}${inquiry}`,
+    right: nextSlotOnRight ? `${rightHtml}${inquiry}` : rightHtml,
+  };
 }

@@ -350,6 +350,12 @@ h2 {
   letter-spacing: 0.04em;
 }
 
+.sponsor-placeholder {
+  padding: 16px 18px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
 .sponsor-title {
   color: var(--text);
   font-size: 16px;

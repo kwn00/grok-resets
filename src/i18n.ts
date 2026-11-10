@@ -21,6 +21,7 @@ export interface Copy {
   sponsorHeading: string;
   advertiseTitle: string;
   advertiseBody: string;
+  sponsorPlaceholder: string;
   advertiseMailBody: string;
   thanksLabel: string;
   thanksUnavailable: string;
@@ -63,6 +64,7 @@ const copy: Record<Lang, Copy> = {
     sponsorHeading: "Sponsor",
     advertiseTitle: "Advertise here",
     advertiseBody: "Reach developers who use Grok Bot, Grok Build, and Cursor.",
+    sponsorPlaceholder: "Sponsors show up here.",
     advertiseMailBody: "Hello,\n\nI would like to advertise on Grok Resets.\n\nSite:\nName:\n",
     thanksLabel: "Thanks @bot",
     thanksUnavailable: "Count unavailable",
@@ -113,6 +115,7 @@ const copy: Record<Lang, Copy> = {
     sponsorHeading: "스폰서",
     advertiseTitle: "여기에 광고하기",
     advertiseBody: "Grok Bot, Grok Build, Cursor를 쓰는 개발자에게 닿습니다.",
+    sponsorPlaceholder: "스폰서가 있으면 이곳에 나옵니다.",
     advertiseMailBody: "안녕하세요.\n\nGrok Resets에 광고를 문의합니다.\n\n사이트:\n이름:\n",
     thanksLabel: "고마워요",
     thanksUnavailable: "횟수를 표시할 수 없습니다",
