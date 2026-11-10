@@ -1,4 +1,5 @@
-import { parseHashCounts, type CountStore } from "./reactions";
+import { parseHashCounts } from "./count-parse";
+import type { CountStore } from "./reactions";
 
 export const COUNTS_PATH = "reactions/counts.json";
 /** Vercel Blob rejects a max-age below one minute. Reads bypass this with cache=0. */
