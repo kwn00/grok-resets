@@ -33,12 +33,9 @@ function escapeHtml(value: string): string {
 
 function botIcon(): string {
   return `<svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
-    <rect x="5.5" y="8" width="21" height="16.5" rx="5" fill="none" stroke="currentColor" stroke-width="1.7"/>
-    <circle cx="12.2" cy="15.2" r="1.45" fill="currentColor"/>
-    <circle cx="19.8" cy="15.2" r="1.45" fill="currentColor"/>
-    <path d="M12 21.2h8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-    <path d="M16 8V4.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-    <circle cx="16" cy="3.5" r="1.15" fill="currentColor"/>
+    <rect width="32" height="32" rx="8" fill="currentColor"/>
+    <rect x="9.15" y="7.7" width="4.35" height="9.5" rx="2.18" fill="#0c0c0c" transform="rotate(-10 11.32 12.45)"/>
+    <rect x="18.5" y="7.7" width="4.35" height="9.5" rx="2.18" fill="#0c0c0c" transform="rotate(10 20.68 12.45)"/>
   </svg>`;
 }
 
