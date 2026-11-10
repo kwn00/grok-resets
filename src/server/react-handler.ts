@@ -1,9 +1,9 @@
 import { readFileSync } from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { join } from "node:path";
-import type { BlobSdk } from "../src/blob-store";
-import { normalizeResets } from "../src/normalize";
-import { handleReaction, reactionHeaders, readReactionId, resolveCountStore } from "../src/reactions";
+import type { BlobSdk } from "../blob-store";
+import { normalizeResets } from "../normalize";
+import { handleReaction, reactionHeaders, readReactionId, resolveCountStore } from "../reactions";
 
 type NodeRequest = IncomingMessage & { body?: unknown };
 

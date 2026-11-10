@@ -3,7 +3,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
-    "api/react.ts": {
+    "api/react.js": {
       "includeFiles": "data/resets.json"
     }
   }

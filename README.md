@@ -80,7 +80,7 @@ Import the repository and use:
 | Node.js | 22.x or newer |
 | Environment variables | `BLOB_READ_WRITE_TOKEN` is already set. Redis variables are optional. |
 
-`vercel.json` sets the framework, build command, and output directory. The page and `/api/v1/*.json` are static files in `dist`. `/api/react` is a serverless function in the repo's `api/` folder, so it does not replace those JSON files.
+`vercel.json` sets the framework, build command, and output directory. The page and `/api/v1/*.json` are static files in `dist`. `/api/react` is a serverless function (`api/react.js`, bundled from `src/server/react-handler.ts` by `npm run build`). It does not replace those JSON files.
 
 ## Thanks count
 
