@@ -32,11 +32,7 @@ function escapeHtml(value: string): string {
 }
 
 function botIcon(): string {
-  return `<svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
-    <rect width="32" height="32" rx="8" fill="currentColor"/>
-    <rect x="9.15" y="7.7" width="4.35" height="9.5" rx="2.18" fill="#0c0c0c" transform="rotate(-10 11.32 12.45)"/>
-    <rect x="18.5" y="7.7" width="4.35" height="9.5" rx="2.18" fill="#0c0c0c" transform="rotate(10 20.68 12.45)"/>
-  </svg>`;
+  return `<img class="mark" src="/favicon.png" alt="" width="32" height="32" />`;
 }
 
 function botLink(): string {
